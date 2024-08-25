@@ -49,6 +49,7 @@ func main(){
 			}
 			file.Write(rman.Decompress(chbytes))
 		}
+		fmt.Println(fpath + " is successfully installed")
 	}
 }
 
