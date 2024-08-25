@@ -30,7 +30,7 @@ func LoadHttpReqestBytes(req *http.Request) []byte{
     }
     defer resp.Body.Close()
 
-    if resp.StatusCode != 200{
+    if resp.StatusCode != 206{
         return nil
     }
 
@@ -50,9 +50,9 @@ type Manifest struct {
 type Chunk struct {
     CompressedSize   uint32
     UncompressedSize uint32
-    ChunkID          int64
+    ChunkID          uint64
     BundleOffset     uint32
-    BundleID         int64
+    BundleID         uint64
 }
 
 type Flag struct {
@@ -61,7 +61,7 @@ type Flag struct {
 }
 
 type FileEntry struct {
-    ID              int64
+    ID              uint64
     FileSize        uint32
     Name            string
     SymLink         string
@@ -70,12 +70,12 @@ type FileEntry struct {
 }
 
 type FirstDirectory struct {
-    DirectoryID int64
-    ParentID    int64
+    DirectoryID uint64
+    ParentID    uint64
     Name        string
 }
 type Directory struct {
-    DirectoryID int64
+    DirectoryID uint64
     Name        string
 }
 
