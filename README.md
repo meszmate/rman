@@ -59,7 +59,7 @@ func main(){
 		fmt.Println(fpath + " is successfully installed")
 	}
 	etime := time.Now().Unix()
-	fmt.Printf("Successfully installed in %d seconds", etime-stime)
+	fmt.Printf("Successfully installed in %d seconds\n", etime-stime)
 }
 
 func getChunkByURL(BundleID uint64, offset uint32, size uint32, retries int) []byte{
@@ -142,7 +142,7 @@ func main(){
 	        fmt.Println(f.Name + " is successfully installed")
 	}
 	etime := time.Now().Unix()
-	fmt.Printf("Successfully installed in %d seconds", etime-stime)
+	fmt.Printf("Successfully installed in %d seconds\n", etime-stime)
 }
 func getBundleDataByURL(BundleID uint64, retries int) []byte{
     	retry := 0
