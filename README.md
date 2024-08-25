@@ -79,3 +79,76 @@ func getChunkByURL(BundleID uint64, offset uint32, size uint32, retries int) []b
 	return nil
 }
 ```
+
+## Example 2
+If you want faster download, i created a faster version
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+
+	"github.com/meszmate/rman"
+)
+
+const DownloadPath string = "/Users/meszmate/manifestparse/" // Leave it empty if you want to install to the current directory
+const BaseURL string = "https://valorant.dyn.riotcdn.net/channels/public/bundles"
+const max_retries int = 7
+
+type Buff struct{
+    BundleID uint64
+    Data []byte
+}
+
+func main(){
+    var buff *Buff = nil
+    b := rman.LoadFileBytes("/Users/meszmate/Downloads/EB9EF8EA7C032A8B.manifest")
+    manifest, err := rman.ParseManifestData(b)
+    if err != nil{
+        log.Fatalf(err.Error())
+    }
+    for _, f := range manifest.Files{
+        fpath := DownloadPath + f.Name
+        err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm)
+        if err != nil {
+            log.Fatalf("Failed to create directories: %v", err)
+        }
+        file, err := os.Create(fpath)
+        if err != nil {
+            log.Fatalf("Failed to create file: %v", err)
+        }
+        defer file.Close()
+
+        for _, i := range f.Chunks{
+            if buff == nil || buff.BundleID != i.BundleID{
+                bundleBytes := getBundleDataByURL(i.BundleID, max_retries)
+                if bundleBytes == nil{
+                    fmt.Printf("%s Failed to get chunk bundle %d, next...\n", fmt.Sprintf("%016X", i.BundleID), i.ChunkID)
+                    continue
+                }
+                buff = &Buff{
+                    BundleID: i.BundleID,
+                    Data: bundleBytes,
+                }
+            }
+            chbytes := buff.Data[i.BundleOffset:i.BundleOffset+i.CompressedSize]
+            file.Write(rman.Decompress(chbytes))
+        }
+        fmt.Println(f.Name + " is successfully installed")
+    }
+}
+func getBundleDataByURL(BundleID uint64, retries int) []byte{
+    retry := 0
+	for retry < retries+1{
+		newbytes := rman.LoadURLBytes(fmt.Sprintf("%s/%016X.bundle", BaseURL, BundleID))
+		if newbytes != nil{
+			return newbytes
+		}
+		retry++
+	}
+	return nil
+}
+```
