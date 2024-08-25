@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/klauspost/compress/zstd"
 	manifest "github.com/meszmate/manifest"
