@@ -22,7 +22,7 @@ func LoadFileBytes(url string) []byte{
 
 
 type Manifest struct {
-    ID          int64
+    ID          uint64
     Flags       []Flag
     Files       []FileEntry
 }
@@ -251,6 +251,7 @@ func ParseManifestData(data []byte) (*Manifest, error) {
     }
 
     manifest := &Manifest{}
+    manifest.ID = binary.LittleEndian.Uint64(data[16:24])
     if err := ParseBody(manifest, uncompressedData); err != nil {
         return nil, fmt.Errorf("Error parsing body: %w", err)
     }
