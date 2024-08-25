@@ -75,7 +75,6 @@ func Decompress(data []byte) []byte{
 
 func ParseBody(manifest *Manifest, data []byte) error {
 
-    // Assume `manifest_fb` is the root table
     root := flatbuffer.GetRootAsManifest(data, 0)
 
     manifest.Flags = make([]Flag, 0)
@@ -169,7 +168,6 @@ func ParseBody(manifest *Manifest, data []byte) error {
     for i := 0; i < files; i++ {
         file := new(flatbuffer.File)
         root.Files(file, i)
-        // fmt.Printf("%s/%016X.bundle\n", "https://valorant.dyn.riotcdn.net/channels/public/bundles", file.BundleId())
         
         var fileEntry FileEntry
 
