@@ -151,7 +151,7 @@ func ParseBody(manifest *Manifest, data []byte) error {
         })
     }
     
-    var Chunks map[int64]Chunk = make(map[int64]Chunk, 0)
+    var Chunks map[uint64]Chunk = make(map[uint64]Chunk, 0)
     BundleLength := root.BundlesLength()
     var LastChunk Chunk
     for i := 0; i < BundleLength; i++{
@@ -213,7 +213,7 @@ func ParseBody(manifest *Manifest, data []byte) error {
         fileEntry.Chunks = make([]Chunk, 0)
         chunkslength := file.ChunkIdsLength()
         for j := 0; j < chunkslength; j++ {
-            var chunkID int64 = file.ChunkIds(j)
+            var chunkID uint64 = file.ChunkIds(j)
             ch, ok := Chunks[chunkID]
             if !ok{
                 fmt.Printf("ChunkID %d not found", chunkID)
