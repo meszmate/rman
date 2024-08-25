@@ -90,6 +90,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/meszmate/rman"
 )
@@ -115,28 +116,28 @@ func main(){
 	        fpath := DownloadPath + f.Name
 	        err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm)
 	        if err != nil {
-	            log.Fatalf("Failed to create directories: %v", err)
+	            	log.Fatalf("Failed to create directories: %v", err)
 	        }
 	        file, err := os.Create(fpath)
 	        if err != nil {
-	            log.Fatalf("Failed to create file: %v", err)
+	            	log.Fatalf("Failed to create file: %v", err)
 	        }
 	        defer file.Close()
 	
 	        for _, i := range f.Chunks{
-	            if buff == nil || buff.BundleID != i.BundleID{
-	                bundleBytes := getBundleDataByURL(i.BundleID, max_retries)
-	                if bundleBytes == nil{
-	                    fmt.Printf("%s Failed to get chunk bundle %d, next...\n", fmt.Sprintf("%016X", i.BundleID), i.ChunkID)
-	                    continue
-	                }
-	                buff = &Buff{
-	                    BundleID: i.BundleID,
-	                    Data: bundleBytes,
-	                }
-	            }
-	            chbytes := buff.Data[i.BundleOffset:i.BundleOffset+i.CompressedSize]
-	            file.Write(rman.Decompress(chbytes))
+	            	if buff == nil || buff.BundleID != i.BundleID{
+	                	bundleBytes := getBundleDataByURL(i.BundleID, max_retries)
+	                	if bundleBytes == nil{
+	                    		fmt.Printf("%s Failed to get chunk bundle %d, next...\n", fmt.Sprintf("%016X", i.BundleID), i.ChunkID)
+	                    		continue
+				}
+	                	buff = &Buff{
+	                    		BundleID: i.BundleID,
+	                    		Data: bundleBytes,
+				}
+	            	}
+	            	chbytes := buff.Data[i.BundleOffset:i.BundleOffset+i.CompressedSize]
+	            	file.Write(rman.Decompress(chbytes))
 	        }
 	        fmt.Println(f.Name + " is successfully installed")
 	}
