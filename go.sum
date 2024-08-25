@@ -1,0 +1,10 @@
+github.com/google/flatbuffers v24.3.25+incompatible h1:CX395cjN9Kke9mmalRoL3d81AtFUxJM+yDthflgJGkI=
+github.com/google/flatbuffers v24.3.25+incompatible/go.mod h1:1AeVuKshWv4vARoZatz6mlQ0JxURH0Kv5+zNeJKJCa8=
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/klauspost/compress v1.17.9 h1:6KIumPrER1LHsvBVuDa0r5xaG0Es51mhhB9BQB2qeMA=
+github.com/klauspost/compress v1.17.9/go.mod h1:Di0epgTjJY877eYKx5yC51cX2A2Vl2ibi7bDH9ttBbw=
+github.com/meszmate/manifest v0.0.0-20240824110927-e1ed89b49ad2 h1:BrgkylII59ev1j7UJLUCQKT2kSS0pnJZfiXzdyBeqjk=
+github.com/meszmate/manifest v0.0.0-20240824110927-e1ed89b49ad2/go.mod h1:vfE0liNen7DR63BiB6+JD9yqyKHSI7Mdsm5IlV7oC44=
+github.com/meszmate/rman v0.0.0-20240825061310-548b9526be23 h1:8QuKWfl+6r4oOCAmycLEhUzVRM9qSVWImoWzbDTQlJg=
+github.com/meszmate/rman v0.0.0-20240825061310-548b9526be23/go.mod h1:6bi+D1GDzrVHTt/f8EuHWMuc6Ms2TPnGGNJVqYJCQnM=
