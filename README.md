@@ -4,6 +4,11 @@ Manifest Parser for downloading, updating games or viewing the files
 ## Explanation
 https://technology.riotgames.com/news/supercharging-data-delivery-new-league-patcher
 
+## Installation
+```go
+go get -u github.com/meszmate/rman
+```
+
 ## Usage
 This is only an example, but you can build a better downloader if you want. Check "Explanation" if you want to know how to update the game.
 ```go
