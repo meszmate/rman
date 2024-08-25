@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/meszmate/rman"
 )
@@ -29,6 +30,7 @@ const BaseURL string = "https://valorant.dyn.riotcdn.net/channels/public/bundles
 const max_retries int = 7
 
 func main(){
+	stime := time.Now().Unix()
     	b := rman.LoadFileBytes("/Users/meszmate/Downloads/EB9EF8EA7C032A8B.manifest")
     	manifest, err := rman.ParseManifestData(b)
     	if err != nil{
@@ -56,6 +58,8 @@ func main(){
 		}
 		fmt.Println(fpath + " is successfully installed")
 	}
+	etime := time.Now().Unix()
+	fmt.Printf("Successfully installed in %d seconds", etime-stime)
 }
 
 func getChunkByURL(BundleID uint64, offset uint32, size uint32, retries int) []byte{
