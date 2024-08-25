@@ -104,44 +104,47 @@ type Buff struct{
 }
 
 func main(){
-    var buff *Buff = nil
-    b := rman.LoadFileBytes("/Users/meszmate/Downloads/EB9EF8EA7C032A8B.manifest")
-    manifest, err := rman.ParseManifestData(b)
-    if err != nil{
-        log.Fatalf(err.Error())
-    }
-    for _, f := range manifest.Files{
-        fpath := DownloadPath + f.Name
-        err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm)
-        if err != nil {
-            log.Fatalf("Failed to create directories: %v", err)
-        }
-        file, err := os.Create(fpath)
-        if err != nil {
-            log.Fatalf("Failed to create file: %v", err)
-        }
-        defer file.Close()
-
-        for _, i := range f.Chunks{
-            if buff == nil || buff.BundleID != i.BundleID{
-                bundleBytes := getBundleDataByURL(i.BundleID, max_retries)
-                if bundleBytes == nil{
-                    fmt.Printf("%s Failed to get chunk bundle %d, next...\n", fmt.Sprintf("%016X", i.BundleID), i.ChunkID)
-                    continue
-                }
-                buff = &Buff{
-                    BundleID: i.BundleID,
-                    Data: bundleBytes,
-                }
-            }
-            chbytes := buff.Data[i.BundleOffset:i.BundleOffset+i.CompressedSize]
-            file.Write(rman.Decompress(chbytes))
-        }
-        fmt.Println(f.Name + " is successfully installed")
-    }
+	stime := time.Now().Unix()
+	var buff *Buff = nil
+	b := rman.LoadFileBytes("/Users/meszmate/Downloads/EB9EF8EA7C032A8B.manifest")
+	manifest, err := rman.ParseManifestData(b)
+	if err != nil{
+	        log.Fatalf(err.Error())
+	}
+	for _, f := range manifest.Files{
+	        fpath := DownloadPath + f.Name
+	        err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm)
+	        if err != nil {
+	            log.Fatalf("Failed to create directories: %v", err)
+	        }
+	        file, err := os.Create(fpath)
+	        if err != nil {
+	            log.Fatalf("Failed to create file: %v", err)
+	        }
+	        defer file.Close()
+	
+	        for _, i := range f.Chunks{
+	            if buff == nil || buff.BundleID != i.BundleID{
+	                bundleBytes := getBundleDataByURL(i.BundleID, max_retries)
+	                if bundleBytes == nil{
+	                    fmt.Printf("%s Failed to get chunk bundle %d, next...\n", fmt.Sprintf("%016X", i.BundleID), i.ChunkID)
+	                    continue
+	                }
+	                buff = &Buff{
+	                    BundleID: i.BundleID,
+	                    Data: bundleBytes,
+	                }
+	            }
+	            chbytes := buff.Data[i.BundleOffset:i.BundleOffset+i.CompressedSize]
+	            file.Write(rman.Decompress(chbytes))
+	        }
+	        fmt.Println(f.Name + " is successfully installed")
+	}
+	etime := time.Now().Unix()
+	fmt.Printf("Successfully installed in %d seconds", etime-stime)
 }
 func getBundleDataByURL(BundleID uint64, retries int) []byte{
-    retry := 0
+    	retry := 0
 	for retry < retries+1{
 		newbytes := rman.LoadURLBytes(fmt.Sprintf("%s/%016X.bundle", BaseURL, BundleID))
 		if newbytes != nil{
