@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 
 	"github.com/klauspost/compress/zstd"
 	manifest "github.com/meszmate/manifest"
@@ -19,7 +20,26 @@ func LoadURLBytes(url string) []byte{
 func LoadFileBytes(url string) []byte{
 	return manifest.LoadFileBytes(url)
 }
+func LoadHttpReqestBytes(req *http.Request) []byte{
+    httpClient := &http.Client{
+        Timeout: 5 * time.Second,
+    }
+    resp, err := httpClient.Do(req)
+    if err != nil{
+        return nil
+    }
+    defer resp.Body.Close()
 
+    if resp.StatusCode != 200{
+        return nil
+    }
+
+    data, err := io.ReadAll(resp.Body)
+    if err != nil{
+        return nil
+    }
+    return data
+}
 
 type Manifest struct {
     ID          uint64
