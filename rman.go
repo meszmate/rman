@@ -10,7 +10,7 @@ import (
 
 	"github.com/klauspost/compress/zstd"
 	manifest "github.com/meszmate/manifest"
-	"github.com/meszmate/rman/flatbuffer"
+	"github.com/meszmate/rman/flatbuffers"
 )
 
 
@@ -95,12 +95,12 @@ func Decompress(data []byte) []byte{
 
 func ParseBody(manifest *Manifest, data []byte) error {
 
-    root := flatbuffer.GetRootAsManifest(data, 0)
+    root := flatbuffers.GetRootAsManifest(data, 0)
 
     manifest.Flags = make([]Flag, 0)
     FlagsLength := root.TagsLength()
     for i := 0; i < FlagsLength; i++ {
-        flag := new(flatbuffer.Tag)
+        flag := new(flatbuffers.Tag)
         root.Tags(flag, i)
 
         manifest.Flags = append(manifest.Flags, Flag{
@@ -112,7 +112,7 @@ func ParseBody(manifest *Manifest, data []byte) error {
     var FirstDirectories []FirstDirectory = make([]FirstDirectory, 0)
     FirstDirectoriesLength := root.DirectoriesLength()
     for i := 0; i < FirstDirectoriesLength; i++ {
-        dir := new(flatbuffer.Directory)
+        dir := new(flatbuffers.Directory)
         root.Directories(dir, i)
         
         if dir.Id() == 0 {
@@ -155,12 +155,12 @@ func ParseBody(manifest *Manifest, data []byte) error {
     BundleLength := root.BundlesLength()
     var LastChunk Chunk
     for i := 0; i < BundleLength; i++{
-        bundle := new(flatbuffer.Bundle)
+        bundle := new(flatbuffers.Bundle)
         root.Bundles(bundle, i)
 
         ChunksLength := bundle.ChunksLength()
         for j := 0; j < ChunksLength; j++{
-            chunk := new(flatbuffer.Chunk)
+            chunk := new(flatbuffers.Chunk)
             bundle.Chunks(chunk, j)
 
             var BundleOffset uint32
@@ -186,7 +186,7 @@ func ParseBody(manifest *Manifest, data []byte) error {
 
     files := root.FilesLength()
     for i := 0; i < files; i++ {
-        file := new(flatbuffer.File)
+        file := new(flatbuffers.File)
         root.Files(file, i)
         
         var fileEntry FileEntry
