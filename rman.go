@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"errors"
 
 	"github.com/klauspost/compress/zstd"
 	manifest "github.com/meszmate/manifest"
@@ -81,16 +80,16 @@ type Directory struct {
     Name        string
 }
 
-func Decompress(data []byte) ([]byte, error){
+func Decompress(data []byte) []byte{
     decoder, err := zstd.NewReader(nil)
     if err != nil {
-        return nil, errors.New("Error when creating the new reader")
+        return nil
     }
     defer decoder.Close()
 
     newData, err := decoder.DecodeAll(data, nil)
     if err != nil {
-        return nil, errors.New("Cannot decode the bytes")
+        return nil
     }
     return newData
 }
