@@ -70,7 +70,7 @@ func getChunkByURL(BundleID uint64, offset uint32, size uint32, retries int) []b
 	req.Header.Add("Range", fmt.Sprintf("bytes=%d-%d", offset, offset+size-1))
 	retry := 0
 	for retry < retries+1{
-		newbytes := rman.LoadHttpReqestBytes(req)
+		newbytes := rman.LoadHttpRequestBytes(req)
 		if newbytes != nil{
 			return newbytes
 		}
