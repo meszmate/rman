@@ -21,7 +21,7 @@ func LoadURLBytes(url string) []byte{
 func LoadFileBytes(url string) []byte{
 	return manifest.LoadFileBytes(url)
 }
-func LoadHttpReqestBytes(req *http.Request) []byte{
+func LoadHttpRequestBytes(req *http.Request) []byte{
     httpClient := &http.Client{
         Timeout: 5 * time.Second,
     }
