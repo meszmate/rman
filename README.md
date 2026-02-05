@@ -196,6 +196,7 @@ err := rman.Download(ctx, m, rman.DownloadConfig{
     Workers:   8,       // concurrent download goroutines
     Retries:   3,       // retries per chunk on failure
     Client:    myHTTPClient, // optional custom *http.Client
+    StateFile: "./output/.rman-state.json", // optional, defaults to .rman-state.json in OutputDir
     Progress: func(e rman.ProgressEvent) {
         pct := float64(e.BytesDone) / float64(e.BytesTotal) * 100
         fmt.Printf("\r%.1f%% (%d/%d files)", pct, e.FilesDone, e.FilesTotal)
@@ -203,7 +204,7 @@ err := rman.Download(ctx, m, rman.DownloadConfig{
 })
 ```
 
-Cancel the context (e.g., on SIGINT) for graceful shutdown — workers will finish their current operation and exit.
+Cancel the context (e.g., on SIGINT) for graceful shutdown — workers will finish their current chunk and exit. Progress is automatically saved to the state file on interruption or error. Calling `Download()` again with the same config will skip already-completed files and chunks, resuming where it left off. The state file is removed automatically when the download completes successfully.
 
 ### Looking Up Game CDN URLs
 
@@ -259,7 +260,7 @@ rman.ExportFileList(os.Stdout, m, true)
 
 ## Resume Support
 
-When a download is interrupted (Ctrl+C or error), the CLI saves progress to a state file (`.rman-state.json` in the output directory by default). Re-running the same download command will automatically detect and resume from where it left off.
+When a download is interrupted (Ctrl+C or error), progress is saved to a state file (`.rman-state.json` in the output directory by default). Re-running the same download command or `Download()` call will automatically detect the state file and resume from where it left off, skipping already-completed files and chunks. The state file is validated against the manifest ID, CDN URL, and output directory — if any of these change, a fresh download starts. On successful completion the state file is removed automatically.
 
 ## Supported Games
 
