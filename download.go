@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"sync"
 	"sync/atomic"
+
+	"github.com/meszmate/rman/internal/state"
 )
 
 // ProgressEvent contains information about download progress.
@@ -59,6 +61,8 @@ func (c *DownloadConfig) defaults() {
 // Download downloads all files from the manifest using the given configuration.
 // It uses a bundle-oriented strategy: fetching chunk data via HTTP Range requests.
 // Supports context-based cancellation for graceful shutdown.
+// If a StateFile is configured, download progress is persisted so interrupted
+// downloads can be resumed.
 func Download(ctx context.Context, m *Manifest, cfg DownloadConfig) error {
 	cfg.defaults()
 
@@ -73,6 +77,9 @@ func Download(ctx context.Context, m *Manifest, cfg DownloadConfig) error {
 		return fmt.Errorf("creating output directory: %w", err)
 	}
 
+	// Load or create download state
+	ds := loadOrCreateState(cfg.StateFile, m.ID, cfg.CDNURL, cfg.OutputDir)
+
 	// Calculate totals
 	var totalBytes int64
 	for _, f := range m.Files {
@@ -82,6 +89,14 @@ func Download(ctx context.Context, m *Manifest, cfg DownloadConfig) error {
 	var bytesDone atomic.Int64
 	var filesDone atomic.Int64
 	filesTotal := int64(len(m.Files))
+
+	// Account for already-completed files in progress
+	for _, f := range m.Files {
+		if ds.IsFileComplete(f.Name) {
+			bytesDone.Add(int64(f.FileSize))
+			filesDone.Add(1)
+		}
+	}
 
 	reportProgress := func() {
 		if cfg.Progress != nil {
@@ -113,24 +128,29 @@ func Download(ctx context.Context, m *Manifest, cfg DownloadConfig) error {
 				if ctx.Err() != nil {
 					return
 				}
-				if err := downloadFile(ctx, cfg, fw.file, &bytesDone); err != nil {
+				if err := downloadFile(ctx, cfg, fw.file, ds, &bytesDone); err != nil {
 					select {
 					case errCh <- fmt.Errorf("downloading %s: %w", fw.file.Name, err):
 					default:
 					}
 					return
 				}
+				ds.MarkFileComplete(fw.file.Name)
 				filesDone.Add(1)
+				ds.Save()
 				reportProgress()
 			}
 		}()
 	}
 
-	// Feed files to workers
+	// Feed files to workers, skipping completed files
 	go func() {
 		for _, f := range m.Files {
 			if ctx.Err() != nil {
 				break
+			}
+			if ds.IsFileComplete(f.Name) {
+				continue
 			}
 			fileCh <- fileWork{file: f, chunks: f.Chunks}
 		}
@@ -141,18 +161,35 @@ func Download(ctx context.Context, m *Manifest, cfg DownloadConfig) error {
 
 	select {
 	case err := <-errCh:
+		ds.Save()
 		return err
 	default:
 	}
 
 	if ctx.Err() != nil {
+		ds.Save()
 		return ctx.Err()
 	}
 
+	// All done — clean up state file
+	ds.Remove()
 	return nil
 }
 
-func downloadFile(ctx context.Context, cfg DownloadConfig, file FileEntry, bytesDone *atomic.Int64) error {
+// loadOrCreateState loads an existing state file if it matches the current
+// download parameters, otherwise creates a new one.
+func loadOrCreateState(path string, manifestID uint64, cdnURL, outputDir string) *state.DownloadState {
+	if path == "" {
+		return state.New("", manifestID, cdnURL, outputDir)
+	}
+	ds, err := state.Load(path)
+	if err == nil && ds.ManifestID == manifestID && ds.CDNURL == cdnURL && ds.OutputDir == outputDir {
+		return ds
+	}
+	return state.New(path, manifestID, cdnURL, outputDir)
+}
+
+func downloadFile(ctx context.Context, cfg DownloadConfig, file FileEntry, ds *state.DownloadState, bytesDone *atomic.Int64) error {
 	fpath := filepath.Join(cfg.OutputDir, file.Name)
 	if err := os.MkdirAll(filepath.Dir(fpath), 0o755); err != nil {
 		return fmt.Errorf("creating directory: %w", err)
@@ -164,9 +201,15 @@ func downloadFile(ctx context.Context, cfg DownloadConfig, file FileEntry, bytes
 	}
 	defer f.Close()
 
+	totalChunks := len(file.Chunks)
 	for _, chunk := range file.Chunks {
 		if ctx.Err() != nil {
 			return ctx.Err()
+		}
+
+		if ds.IsChunkDone(file.Name, chunk.ChunkID) {
+			bytesDone.Add(int64(chunk.UncompressedSize))
+			continue
 		}
 
 		data, err := fetchChunk(ctx, cfg, chunk)
@@ -184,6 +227,7 @@ func downloadFile(ctx context.Context, cfg DownloadConfig, file FileEntry, bytes
 		}
 
 		bytesDone.Add(int64(chunk.UncompressedSize))
+		ds.MarkChunkDone(file.Name, chunk.ChunkID, totalChunks)
 	}
 
 	return nil
